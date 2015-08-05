@@ -1,0 +1,32 @@
+<?php
+/**
+ * ♔ TestLink Open Source Project - http://testlink.sourceforge.net/
+ * This script is distributed under the GNU General Public License 2 or later.
+ *
+ * Define your custom strings for this locale here.
+ * Custom strings need to be defined for each locale you plan to use
+ * Remove ".example" from filename to use this file
+ *
+ * @filesource	locale/en_GB/custom_strings.txt
+ * @package 	TestLink
+ * @author 		Julian Krien
+ * @copyright 	2003, TestLink community
+ * @link 		http://www.teamst.org/index.php
+ *
+ * ------------------------------------------------------------------------------------- 
+ * Spanish (es_ES) translation
+ * -------------------------------------------------------------------------------------
+ * Translated by: Jesus Hernandez
+ * Date: 2014/11/04
+ * -------------------------------------------------------------------------------------
+ **/
+
+$TLS_test_status_my_status = "Este es mi resultado personalizado";
+
+$TLS_assembla_assigned_to = "Asignado a";
+$TLS_assembla_estimate = "Estimación";
+$TLS_assembla_milestone = "Hito";
+$TLS_assembla_ticket_created = "Ticket creado";
+$TLS_assembla_reported_by = "Reportado por";
+$TL_assembla_comment_added = "Comentario agregado a la descripción del ticket";
+?>
