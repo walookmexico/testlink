@@ -238,9 +238,9 @@ class assemblarestInterface extends issueTrackerInterface
    * 
    * @return string
    */
-  function getIssueTrackerType()
+  function hasExtraFields()
   {
-    return 'assembla';
+    return true;
   }
 
   /**
@@ -300,5 +300,15 @@ class assemblarestInterface extends issueTrackerInterface
       $ret = array('status_ok' => false, 'id' => -1, 'msg' => $msg);
     }
     return $ret;
+  }
+  
+  public function getUsers()
+  {
+    return $this->APIClient->getUsers();
+  }
+  
+  public function getMilestones()
+  {
+    return $this->APIClient->getMilestones();
   }
 }

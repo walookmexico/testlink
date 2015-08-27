@@ -775,7 +775,7 @@ function getIssueTrackerMetaData($itsObj)
                     'priorities' => 'getPrioritiesForHTMLSelect',
                     'versions' => 'getVersionsForHTMLSelect',
                     'components' => 'getComponentsForHTMLSelect',
-                    'trackerType' => 'getIssueTrackerType');
+                    'hasExtraFields' => 'hasExtraFields');
 
     foreach($target as $key => $worker)
     {

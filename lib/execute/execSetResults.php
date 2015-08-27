@@ -509,7 +509,15 @@ function init_args(&$dbHandler,$cfgObj)
     $its = $it_mgr->getInterfaceObject($args->tproject_id);
     $itsCfg = $it_mgr->getLinkedTo($args->tproject_id);
     unset($it_mgr);
-    $bug_summary['maxLengh'] = $its->getBugSummaryMaxLength(); 
+    $bug_summary['maxLengh'] = $its->getBugSummaryMaxLength();
+    
+    // extra fields for some issue trackers
+    if (method_exists($its, 'getUsers')) {
+      $args->issueTracker_users = $its->getUsers();
+    }
+    if (method_exists($its, 'getMilestones')) {
+      $args->issueTracker_milestones = $its->getMilestones();
+    }
   }
  
   
@@ -520,11 +528,11 @@ function init_args(&$dbHandler,$cfgObj)
                     "artifactVersion" => array("POST",tlInputParameter::ARRAY_INT));
 
   $inputCfg["bug_summary"] = array("POST",tlInputParameter::STRING_N);
-  // fetching assembla params
-  $inputCfg["assembla_assigned_to"] = array("POST",tlInputParameter::STRING_N);
-  $inputCfg["assembla_estimate"] = array("POST",tlInputParameter::STRING_N);
-  $inputCfg["assembla_milestone"] = array("POST",tlInputParameter::STRING_N);
-  $inputCfg["assembla_reported_by"] = array("POST",tlInputParameter::STRING_N);
+  // fetching extra params
+  $inputCfg["issue_assigned_to"] = array("POST",tlInputParameter::STRING_N);
+  $inputCfg["issue_estimate"] = array("POST",tlInputParameter::STRING_N);
+  $inputCfg["issue_milestone"] = array("POST",tlInputParameter::STRING_N);
+  $inputCfg["issue_reported_by"] = array("POST",tlInputParameter::STRING_N);
 
   if(!$args->do_bulk_save)
   {
@@ -1170,9 +1178,9 @@ function initializeGui(&$dbHandler,&$argsObj,&$cfgObj,&$tplanMgr,&$tcaseMgr,&$is
   $gui->loadExecDashboard = false;
   $gui->treeFormToken = $argsObj->treeFormToken;
   $gui->import_limit = TL_REPOSITORY_MAXFILESIZE;
-  // passing assembla data
-  $gui->assembla_users = $_SESSION['assembla_users'];
-  $gui->assembla_milestones = $_SESSION['assembla_milestones'];
+  // passing extra data
+  $gui->issueTracker_users = $argsObj->issueTracker_users;
+  $gui->issueTracker_milestones = $argsObj->issueTracker_milestones;
 
   // CORTADO 
   $gui->execStatusValues = createResultsMenu();

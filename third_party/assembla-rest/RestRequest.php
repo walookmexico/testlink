@@ -16,7 +16,10 @@ class RestRequest
   public $api_key_secret; // key secret of the user that will interact with Assembla
 
   protected $url; // url where the tickets are stored
+  protected $base_url; // url to interact with the API
   protected $ticket; // JSON containing the last ticket used
+  protected $request_body; // body of the request to be sent to Assembla
+  protected $content_type; // format of the body to be sent to Assembla
   protected $verb; // used to specify the request (GET, POST, PUT)
 
   protected $responseBody; // body of Assembla's answer, usually contains a ticket
@@ -24,25 +27,35 @@ class RestRequest
 
   /**
    * Initializes the required data to communicate with Assembla
-   *
+   * 
    * @param null $space_id
-   * @param null $ticket_data
+   * @param null $content_type
    * @param string $verb
+   * @param null $request_body
    */
-  public function init($space_id = null, $ticket_data = null, $verb = 'GET')
+  public function init($space_id = null, $content_type = null, $verb = 'GET', $request_body = null)
   {
     $this->space_id = $space_id;
     if (!is_null($this->space_id)) {
-      $this->url = 'http://api.assembla.com/v1/spaces/' . $this->space_id . '/tickets/';
+      $this->base_url = 'http://api.assembla.com/v1/spaces/' . $this->space_id . '/';
     } else {
-      $this->url = null;
+      $this->base_url = null;
     }
-    if (!is_null($ticket_data)) {
-      $this->ticket = '{"ticket":' . json_encode($ticket_data) . '}';
-    } else {
-      $this->ticket = null;
-    }
+
     $this->verb = $verb;
+    $this->request_body = $request_body;
+    
+    switch (strtoupper($content_type)) {
+      case 'JSON':
+        $this->content_type = 'application/json';
+        break;
+      case 'XML':
+        $this->content_type = 'application/xml';
+        break;
+      default:
+        $this->content_type = null;
+        break;
+    }
   }
 
   /**
@@ -50,9 +63,9 @@ class RestRequest
    */
   public function end()
   {
-    //$this->space_id = null;
-    $this->ticket = null;
+    $this->base_url = null;
     $this->verb = 'GET';
+    $this->request_body = null;
     $this->responseBody = null;
     $this->responseInfo = null;
   }
@@ -62,36 +75,28 @@ class RestRequest
    *
    * @param null $ticket_number
    */
-  public function execute($ticket_number = null)
+  public function execute($data_location)
   {
     $ch = curl_init();
-    $base_url = $this->url;
+    $this->url = $this->base_url . $data_location;
     try {
       switch (strtoupper($this->verb)) {
         case 'GET':
-          if (!is_null($ticket_number)) {
-            $this->url .= $ticket_number . '.json';
-            $this->executeGet($ch);
-          } else {
-            throw new \InvalidArgumentException('You need a ticket number to execute ' . $this->verb);
-          }
+          $this->executeGet($ch);
           break;
         case 'POST':
           $this->executePost($ch);
           break;
         case 'PUT':
-          if (!is_null($ticket_number)) {
-            $this->url .= $ticket_number . '.json';
-            $this->executePut($ch);
-          } else {
-            throw new \InvalidArgumentException('You need a ticket number to execute ' . $this->verb);
-          }
+          $this->executePut($ch);
           break;
         default:
           throw new \InvalidArgumentException('Current verb (' . $this->verb . ') is not supported.');
       }
-      $this->url = $base_url;
     } catch (\InvalidArgumentException $e) {
+      curl_close($ch);
+      throw $e;
+    } catch (\Exception $e) {
       curl_close($ch);
       throw $e;
     }
@@ -105,7 +110,7 @@ class RestRequest
   protected function executePost($ch)
   {
     curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $this->ticket);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $this->request_body);
 
     $this->doExecute($ch);
   }
@@ -114,7 +119,7 @@ class RestRequest
   {
     curl_setopt($ch, CURLOPT_POST, true);
     curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PUT");
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $this->ticket);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $this->request_body);
 
     $this->doExecute($ch);
   }
@@ -142,18 +147,14 @@ class RestRequest
     curl_setopt($ch, CURLOPT_URL, $this->url);
     curl_setopt($ch, CURLOPT_HEADER, TRUE);
     if ($this->api_key !== null && $this->api_key_secret !== null) {
-      curl_setopt(
-        $ch,
-        CURLOPT_HTTPHEADER,
-        array(
-          'Content-type: application/json',
-          'X-Api-Key: ' . $this->api_key,
-          'X-Api-Secret: ' . $this->api_key_secret
-        )
-      );
+      $http_header = array('X-Api-Key: ' . $this->api_key, 'X-Api-Secret: ' . $this->api_key_secret);
+      if ($this->content_type != null) {
+        array_push($http_header, 'Content-type: '. $this->content_type);
+      }
+      curl_setopt($ch, CURLOPT_HTTPHEADER, $http_header);
     }
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 60);
     curl_setopt($ch, CURLOPT_FAILONERROR, TRUE);
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, TRUE);
     curl_setopt($ch, CURLOPT_MAXREDIRS, 3);
@@ -175,89 +176,6 @@ class RestRequest
     $response = explode("\r\n\r\n", $this->responseBody, 2)[1];
 
     return json_decode($response);
-  }
-
-  /**
-   * Sets the curl options for diverse requests to Assembla
-   *
-   * @param $ch
-   * @param $url
-   */
-  protected function setCurl(&$ch, $url)
-  {
-    curl_setopt($ch, CURLOPT_URL, $url);
-    curl_setopt($ch, CURLOPT_HEADER, TRUE);
-    if ($this->api_key !== null && $this->api_key_secret !== null) {
-      curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-        'Content-type: application/json',
-        'X-Api-Key: ' . $this->api_key,
-        'X-Api-Secret: ' . $this->api_key_secret));
-    }
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 50);
-    curl_setopt($ch, CURLOPT_FAILONERROR, TRUE);
-    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, TRUE);
-    curl_setopt($ch, CURLOPT_MAXREDIRS, 3);
-  }
-
-  /**
-   * Fetches the users in the project from Assembla
-   *
-   * @param $space_id
-   * @return array|null
-   */
-  public function getUsers($space_id)
-  {
-    if (!is_null($space_id)) {
-      $url = 'http://api.assembla.com/v1/spaces/' . $this->space_id . '/users/';
-
-      $curl = curl_init();
-      $this->setCurl($curl, $url);
-
-      $response = curl_exec($curl);
-      $response = explode("\r\n\r\n", $response, 2)[1];
-      $usersAux = json_decode($response);
-
-      $users = array();
-      for ($i = 0; $i < sizeof($usersAux); $i++) {
-        $users[$usersAux[$i]->id] = $usersAux[$i]->name;
-      }
-
-      $_SESSION['assembla_users'] = $users;
-      return $users;
-    } else {
-      return NULL;
-    }
-  }
-
-  /**
-   * Fetches the users in the project from Assembla
-   *
-   * @param $space_id
-   * @return array|null
-   */
-  public function getMilestones($space_id)
-  {
-    if (!is_null($space_id)) {
-      $url = 'http://api.assembla.com/v1/spaces/' . $this->space_id . '/milestones/all/';
-
-      $curl = curl_init();
-      $this->setCurl($curl, $url);
-
-      $response = curl_exec($curl);
-      $response = explode("\r\n\r\n", $response, 2)[1];
-      $milestonesAux = json_decode($response);
-
-      $milestones = array();
-      for ($i = 0; $i < sizeof($milestonesAux); $i++) {
-        $milestones[$milestonesAux[$i]->id] = $milestonesAux[$i]->title;
-      }
-
-      $_SESSION['assembla_milestones'] = $milestones;
-      return $milestones;
-    } else {
-      return NULL;
-    }
   }
 
   public function addComment($comment, $ticket_number, $space_id)

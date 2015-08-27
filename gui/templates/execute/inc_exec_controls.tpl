@@ -139,30 +139,12 @@ Rev:
       <tr>
       <td colspan="2">
      {if $gui->issueTrackerMetaData != ''}
-       {if $gui->issueTrackerMetaData.trackerType == 'assembla'} {* show assembla params if that is the issue tracker *}
-         {* user assigned to selection *}
-         <label for="assembla_assigned_to">{$labels.assembla_assigned_to}</label>
-         <select name="assembla_assigned_to" id="assembla_assigned_to">
-           {html_options options=$gui->assembla_users}
-         </select>
-         {* estimate selection *}
-         <label for="assembla_estimate">{$labels.assembla_estimate}</label>
-         <input type="text" name="assembla_estimate" id="assembla_estimate" />
-         {* milestone selection *}
-         <label for="assembla_milestone">{$labels.assembla_milestone}</label>
-         <select name="assembla_milestone" id="assembla_milestone">
-           {html_options options=$gui->assembla_milestones}
-         </select>
-         {* user reported by selection *}
-         <label for="assembla_reported_by">{$labels.assembla_reported_by}</label>
-         <select name="assembla_reported_by" id="assembla_reported_by">
-           {html_options options=$gui->assembla_users}
-         </select>
-         {* attach file to ticket *}
-         <label for="uploadedFile">{$labels.local_file}</label>
-         <input type="hidden" name="MAX_FILE_SIZE" value="{$gui->import_limit}" /> {* restrict file size *}
-         <input type="file" name="uploadedFile" size="{#UPLOAD_FILENAME_SIZE#}" />
-       {/if} {* end assembla *}
+       {include file="execute/inc_issue_tracker_fields.tpl"
+         hasExtraFields = $gui->issueTrackerMetaData.hasExtraFields
+         labels=$labels
+         issueTracker_users = $gui->issueTracker_users
+         issueTracker_milestones = $gui->issueTracker_milestones
+         import_limit = $gui->import_limit}
       <p>
       {if $gui->issueTrackerMetaData.issueTypes != ''}
        <label for="issueType">{$labels.issueType}</label>

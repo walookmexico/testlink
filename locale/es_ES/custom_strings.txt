@@ -23,10 +23,10 @@
 
 $TLS_test_status_my_status = "Este es mi resultado personalizado";
 
-$TLS_assembla_assigned_to = "Asignado a";
-$TLS_assembla_estimate = "Estimación";
-$TLS_assembla_milestone = "Hito";
-$TLS_assembla_ticket_created = "Ticket creado";
-$TLS_assembla_reported_by = "Reportado por";
-$TL_assembla_comment_added = "Comentario agregado a la descripción del ticket";
+$TLS_issueTracker_assigned_to = "Asignado a";
+$TLS_issueTracker_estimate = "Estimación (hrs)";
+$TLS_issueTracker_milestone = "Hito";
+$TLS_issueTracker_ticket_created = "Ticket creado";
+$TLS_issueTracker_reported_by = "Reportado por";
+$TLS_issueTracker_comment_added = "Comentario agregado a la descripción del ticket";
 ?>

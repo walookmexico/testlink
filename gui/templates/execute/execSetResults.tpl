@@ -39,7 +39,7 @@ TestLink Open Source Project - http://testlink.sourceforge.net/
   bug_link_tl_to_bts,bug_create_into_bts,execution_duration,execution_duration_short,
   issueType,issuePriority,artifactVersion,artifactComponent,
   add_issue_note,bug_add_note,preconditions,platform,platform_description,exec_not_run_result_note,remoteExecFeeback,
-  assembla_assigned_to, assembla_estimate, assembla_milestone, assembla_reported_by, local_file'}
+  issueTracker_assigned_to, issueTracker_estimate, issueTracker_milestone, issueTracker_reported_by, local_file'}
 
 
 

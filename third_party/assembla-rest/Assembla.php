@@ -21,10 +21,10 @@ class Assembla
     $this->request->api_key_secret = (isset($config['api_key_secret'])) ? trim($config['api_key_secret']) : null;
     $this->space_id = (isset($config['space_id'])) ? trim($config['space_id']) : null;
     $this->request->space_id = $this->space_id;
+    $this->configCheck();
+
     $this->setUsers();
     $this->setMilestones();
-
-    $this->configCheck();
   }
 
   /**
@@ -48,7 +48,18 @@ class Assembla
   public function setUsers()
   {
     if (!is_null($this->space_id)) {
-      $this->users = $this->request->getUsers($this->space_id);
+      $this->request->init($this->space_id, 'json');
+      $this->request->execute('users/');
+      $usersAux = $this->request->getResponseBody();
+
+      $users = array();
+      for ($i = 0; $i < sizeof($usersAux); $i++) {
+        $users[$usersAux[$i]->id] = $usersAux[$i]->name;
+      }
+
+      $this->users = $users;
+    } else {
+      return null;
     }
   }
 
@@ -60,7 +71,18 @@ class Assembla
   public function setMilestones()
   {
     if (!is_null($this->space_id)) {
-      $this->milestones = $this->request->getMilestones($this->space_id);
+      $this->request->init($this->space_id, 'json');
+      $this->request->execute('milestones/all/');
+      $milestonesAux = $this->request->getResponseBody();
+
+      $milestones = array();
+      for ($i = 0; $i < sizeof($milestonesAux); $i++) {
+        $milestones[$milestonesAux[$i]->id] = $milestonesAux[$i]->title;
+      }
+
+      $this->milestones = $milestones;
+    } else {
+      return null;
     }
   }
 
@@ -96,8 +118,9 @@ class Assembla
    */
   public function createTicket($ticket_data)
   {
-    $this->request->init($this->space_id,$ticket_data, 'POST');
-    $this->request->execute();
+    $ticket = '{"ticket":' . json_encode($ticket_data) . '}';
+    $this->request->init($this->space_id, 'json', 'POST', $ticket);
+    $this->request->execute('tickets/');
     
     return $this->request->getResponseBody();
   }
@@ -110,8 +133,9 @@ class Assembla
    */
   public function updateTicket($ticket_data)
   {
-    $this->request->init($this->space_id, $ticket_data, 'PUT');
-    $this->request->execute($ticket_data->number);
+    $ticket = '{"ticket":' . json_encode($ticket_data) . '}';
+    $this->request->init($this->space_id, 'json', 'PUT', $ticket);
+    $this->request->execute('tickets/'.$ticket_data->number.'.json');
 
     return $this->request->getResponseInfo();
   }
@@ -124,8 +148,8 @@ class Assembla
    */
   public function getTicket($ticket_number)
   {
-    $this->request->init($this->space_id);
-    $this->request->execute($ticket_number);
+    $this->request->init($this->space_id, 'json');
+    $this->request->execute('tickets/'.$ticket_number.'.json');
 
     if ($this->request->getResponseInfo()['http_code'] == 404) {
       return false;
@@ -143,7 +167,9 @@ class Assembla
     if ($this->getTicket($ticket_number) == false) {
       return false;
     } else {
-      $this->request->addComment($comment, $ticket_number, $this->space_id);
+      $ticket_comment = '{"ticket_comment":{"comment":"' . $comment . '"}}';
+      $this->request->init($this->space_id, 'json', 'POST', $ticket_comment);
+      $this->request->execute('tickets/' . $ticket_number . '/ticket_comments/');
 
       return $this->request->getResponseBody();
     }
@@ -151,7 +177,15 @@ class Assembla
 
   public function addAttachment($ticket_id, $file = null)
   {
-    $this->request->addAttachment($ticket_id, $this->space_id, $file);
+    $file = curl_file_create($file['tmp_name'], $file['type']);
+    $document = array(
+      'document[file]' => $file,
+      'document[attachable_type]' => 'Ticket',
+      'document[attachable_id]' => $ticket_id
+    );
+    
+    $this->request->init($this->space_id, null, 'POST', $document);
+    $this->request->execute('documents.json');
 
     return $this->request->getResponseInfo();
   }

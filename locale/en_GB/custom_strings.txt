@@ -17,10 +17,10 @@
 
 $TLS_test_status_my_status = "This is my custom result";
 
-$TLS_assembla_assigned_to = "Assigned to";
-$TLS_assembla_estimate = "Estimate";
-$TLS_assembla_milestone = "Milestone";
-$TLS_assembla_ticket_created = "Ticket created";
-$TLS_assembla_reported_by = "Reported by";
-$TL_assembla_comment_added = "Comment added to ticket summary";
+$TLS_issueTracker_assigned_to = "Assigned to";
+$TLS_issueTracker_estimate = "Estimate (hrs)";
+$TLS_issueTracker_milestone = "Milestone";
+$TLS_issueTracker_ticket_created = "Ticket created";
+$TLS_issueTracker_reported_by = "Reported by";
+$TLS_issueTracker_comment_added = "Comment added to ticket summary";
 ?>

@@ -163,15 +163,19 @@ function initEnv(&$dbHandler)
   $gui->artifactVersion = $args->artifactVersion;
   $gui->artifactComponent = $args->artifactComponent;
 
-  // passing assembla data
-  $gui->assembla_users = $_SESSION['assembla_users'];
-  $gui->assembla_milestones = $_SESSION['assembla_milestones'];
-  $gui->import_limit = TL_REPOSITORY_MAXFILESIZE;
 
   // -----------------------------------------------------------------------
   // Special processing
   list($itObj,$itCfg) = getIssueTracker($dbHandler,$args,$gui);
 
+  // passing extra data
+  if (method_exists($itObj, 'getUsers')) {
+    $gui->issueTracker_users = $itObj->getUsers();
+  }
+  if (method_exists($itObj, 'getMilestones')) {
+    $gui->issueTracker_milestones = $itObj->getMilestones();
+  }
+  $gui->import_limit = TL_REPOSITORY_MAXFILESIZE;
 
   // Second access to user input
   $bug_summary['minLengh'] = 1; 
@@ -179,11 +183,11 @@ function initEnv(&$dbHandler)
 
   $inputCfg = array("bug_summary" => array("POST",tlInputParameter::STRING_N,
                                            $bug_summary['minLengh'],$bug_summary['maxLengh']));
-  // fetching assembla params
-  $inputCfg["assembla_assigned_to"] = array("POST",tlInputParameter::STRING_N);
-  $inputCfg["assembla_estimate"] = array("POST",tlInputParameter::STRING_N);
-  $inputCfg["assembla_milestone"] = array("POST",tlInputParameter::STRING_N);
-  $inputCfg["assembla_reported_by"] = array("POST",tlInputParameter::STRING_N);
+  // fetching extra params
+  $inputCfg["issue_assigned_to"] = array("POST",tlInputParameter::STRING_N);
+  $inputCfg["issue_estimate"] = array("POST",tlInputParameter::STRING_N);
+  $inputCfg["issue_milestone"] = array("POST",tlInputParameter::STRING_N);
+  $inputCfg["issue_reported_by"] = array("POST",tlInputParameter::STRING_N);
 
   I_PARAMS($inputCfg,$args);
   $args->attachment = isset($_FILES['uploadedFile']) ? $_FILES['uploadedFile'] : null;
