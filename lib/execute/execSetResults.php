@@ -529,10 +529,10 @@ function init_args(&$dbHandler,$cfgObj)
 
   $inputCfg["bug_summary"] = array("POST",tlInputParameter::STRING_N);
   // fetching extra params
-  $inputCfg["issue_assigned_to"] = array("POST",tlInputParameter::STRING_N);
-  $inputCfg["issue_estimate"] = array("POST",tlInputParameter::STRING_N);
-  $inputCfg["issue_milestone"] = array("POST",tlInputParameter::STRING_N);
-  $inputCfg["issue_reported_by"] = array("POST",tlInputParameter::STRING_N);
+//  $inputCfg["issue_assigned_to"] = array("POST",tlInputParameter::STRING_N);
+//  $inputCfg["issue_estimate"] = array("POST",tlInputParameter::STRING_N);
+//  $inputCfg["issue_milestone"] = array("POST",tlInputParameter::STRING_N);
+//  $inputCfg["issue_reported_by"] = array("POST",tlInputParameter::STRING_N);
 
   if(!$args->do_bulk_save)
   {
@@ -541,6 +541,12 @@ function init_args(&$dbHandler,$cfgObj)
   } 
 
   I_PARAMS($inputCfg,$args);
+  // TODO: I_PARAMS stoped setting the params automatically
+  $args->assembla_assigned_to = $_POST['issueTracker_assigned_to'];
+  $args->assembla_estimate = $_POST['issueTracker_estimate'];
+  $args->assembla_milestone = $_POST['issueTracker_milestone'];
+  $args->assembla_reported_by = $_POST['issueTracker_reported_by'];
+  
   $args->attachment = isset($_FILES['uploadedFile']) ? $_FILES['uploadedFile'] : null;
 
   return array($args,$its,$itsCfg);
