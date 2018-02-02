@@ -37,7 +37,7 @@ class RestRequest
   {
     $this->space_id = $space_id;
     if (!is_null($this->space_id)) {
-      $this->base_url = 'http://api.assembla.com/v1/spaces/' . $this->space_id . '/';
+      $this->base_url = 'https://api.assembla.com/v1/spaces/' . $this->space_id . '/';
     } else {
       $this->base_url = null;
     }
@@ -173,14 +173,16 @@ class RestRequest
 
   public function getResponseBody()
   {
-    $response = explode("\r\n\r\n", $this->responseBody, 2)[1];
-
+    $preresponse = explode("\r\n\r\n", $this->responseBody, 2);
+	//	var_dump($preresponse);
+	$response = $preresponse[1];
+	
     return json_decode($response);
   }
 
   public function addComment($comment, $ticket_number, $space_id)
   {
-    $url = 'http://api.assembla.com/v1/spaces/' . $space_id . '/tickets/' . $ticket_number . '/ticket_comments';
+    $url = 'https://api.assembla.com/v1/spaces/' . $space_id . '/tickets/' . $ticket_number . '/ticket_comments';
     $ticket_comment = '{"ticket_comment":{"comment":"' . $comment . '"}}';
 
     $curl = curl_init();
@@ -195,7 +197,7 @@ class RestRequest
 
   public function addAttachment($ticket_id, $space_id, $file = null)
   {
-    $url = 'http://api.assembla.com/v1/spaces/' . $space_id . '/documents.json';
+    $url = 'https://api.assembla.com/v1/spaces/' . $space_id . '/documents.json';
     $file = curl_file_create($file['tmp_name'], $file['type']);
     $document = array(
       'document[file]' => $file,
